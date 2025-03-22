@@ -1,0 +1,45 @@
+# Ignore sensitive and private information
+.zsh_history
+.bash_history
+.ssh/id_rsa
+.ssh/id_rsa.pub
+
+# Ignore machine-specific or cache files
+.cache/
+.zcompdump*
+.pki/
+.mozilla/
+.dbus/
+.vscode/extensions.json
+.vscode/extensions/
+
+# Ignore temporary and lock files
+*.swp
+*.swo
+*.lock
+
+# Ignore system-specific settings
+.DS_Store          # macOS-specific
+.Trash-*
+
+# Ignore Python bytecode files
+*.pyc
+__pycache__/
+
+# Node.js-related files
+node_modules/
+npm-debug.log*
+
+# Ignore editor backups and logs
+*.bak
+*.log
+*.tmp
+
+# Ignore OS-specific and IDE-related files
+.idea/
+.vscode/
+Thumbs.db          # Windows thumbnail cache
+
+# Ignore unnecessary metadata and temp files
+*.DS_Store
+*.Trash-*
