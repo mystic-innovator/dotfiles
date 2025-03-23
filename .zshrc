@@ -39,8 +39,8 @@ alias tmux="tmux -f ~/.config/tmux/tmux.conf"
 for file in ~/.{path,exports,aliases,functions,extra}; do
   if [[ -r "$file" && -f "$file" ]]; then
     source "$file"
-  else
-    echo "Warning: $file not found or unreadable" >&2
+  # else
+    # echo "Warning: $file not found or unreadable" >&2
   fi
 done
 unset file
@@ -157,6 +157,7 @@ for key ('j') bindkey -M vicmd ${key} history-substring-search-down
 unset key
 # }}} End configuration added by Zim install
 
+
 # Custom Environment Variables
 export ANDROID_HOME=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_HOME/emulator
@@ -194,3 +195,10 @@ cd_to_nvm
 
 # Created by `pipx` on 2025-03-22 16:05:15
 export PATH="$PATH:/home/kashif/.local/bin"
+
+# Initialize Zoxide
+eval "$(zoxide init zsh --cmd cd)"
+
+# Initialize fzf
+[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh
+[ -f /usr/share/doc/fzf/examples/completion.zsh ] && source /usr/share/doc/fzf/examples/completion.zsh
