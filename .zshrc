@@ -25,27 +25,35 @@ bindkey -e
 setopt CORRECT
 
 # Customize spelling correction prompt.
-#SPROMPT='zsh: correct %F{red}%R%f to %F{green}%r%f [nyae]? '
+SPROMPT='zsh: correct %F{red}%R%f to %F{green}%r%f [nyae]? '
 
 # Remove path separator from WORDCHARS.
 WORDCHARS=${WORDCHARS//[\/]}
 
-
+# Attach to or create a tmux session
 alias tmux="tmux -f ~/.config/tmux/tmux.conf"
+
 # Load the shell dotfiles, and then some:
 # * ~/.path can be used to extend `$PATH`.
 # * ~/.extra can be used for other settings you don’t want to commit.
-for file in ~/.{path,bash_prompt,exports,aliases,functions,extra}; do
-	[ -r "$file" ] && [ -f "$file" ] && source "$file";
-done;
-unset file;
+for file in ~/.{path,exports,aliases,functions,extra}; do
+  if [[ -r "$file" && -f "$file" ]]; then
+    source "$file"
+  else
+    echo "Warning: $file not found or unreadable" >&2
+  fi
+done
+unset file
 
 # Initialize Homebrew
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+if [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+else
+  echo "Warning: Homebrew not found at /home/linuxbrew/.linuxbrew/bin/brew" >&2
+fi
 
 # Initialize Oh-My-Posh
-eval "$(oh-my-posh init zsh --config /home/kashif/.config/oh-my-posh/zen.omp.json)"
-
+[[ -f ~/.config/oh-my-posh/zen.omp.json ]] && eval "$(oh-my-posh init zsh --config ~/.config/oh-my-posh/zen.omp.json)"
 # -----------------
 # Zim configuration
 # -----------------
@@ -78,7 +86,7 @@ eval "$(oh-my-posh init zsh --config /home/kashif/.config/oh-my-posh/zen.omp.jso
 # Set a custom terminal title format using prompt expansion escape sequences.
 # See http://zsh.sourceforge.net/Doc/Release/Prompt-Expansion.html#Simple-Prompt-Escapes
 # If none is provided, the default '%n@%m: %~' is used.
-#zstyle ':zim:termtitle' format '%1~'
+zstyle ':zim:termtitle' format '%n@%m: %~'
 
 #
 # zsh-autosuggestions
@@ -87,14 +95,16 @@ eval "$(oh-my-posh init zsh --config /home/kashif/.config/oh-my-posh/zen.omp.jso
 # Disable automatic widget re-binding on each precmd. This can be set when
 # zsh-users/zsh-autosuggestions is the last module in your ~/.zimrc.
 ZSH_AUTOSUGGEST_MANUAL_REBIND=1
-
+ZSH_AUTOSUGGEST_USE_ASYNC=1
 # Customize the style that the suggestions are shown with.
 # See https://github.com/zsh-users/zsh-autosuggestions/blob/master/README.md#suggestion-highlight-style
-#ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=242'
-
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=242'
 #
 # zsh-syntax-highlighting
 #
+typeset -A ZSH_HIGHLIGHT_STYLES
+ZSH_HIGHLIGHT_STYLES[comment]='fg=242'
+ZSH_HIGHLIGHT_STYLES[alias]='fg=cyan'
 
 # Set what highlighters will be used.
 # See https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/docs/highlighters.md
@@ -120,12 +130,15 @@ if [[ ! -e ${ZIM_HOME}/zimfw.zsh ]]; then
         https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh
   fi
 fi
+
 # Install missing modules, and update ${ZIM_HOME}/init.zsh if missing or outdated.
 if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZDOTDIR:-${HOME}}/.zimrc ]]; then
   source ${ZIM_HOME}/zimfw.zsh init -q
 fi
+
 # Initialize modules.
-source ${ZIM_HOME}/init.zsh
+# Always source init.zsh without redundant checks if it exists
+[[ -e ${ZIM_HOME}/init.zsh ]] && source ${ZIM_HOME}/init.zsh
 
 # ------------------------------
 # Post-init module configuration
@@ -158,30 +171,26 @@ export PATH=$JAVA_HOME/bin:$PATH
 
 # Initialize NVM
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
+nvm() {
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+  nvm "$@"
+}
 cd_to_nvm() {
-  if [ -f .nvmrc ]; then
-    nvm use
+  if [[ -f .nvmrc ]]; then
+    if ! command -v nvm >/dev/null 2>&1; then
+      echo "NVM not loaded. Run 'nvm' to initialize."
+    elif ! nvm use 2>/dev/null; then
+      echo "Failed to switch to Node version in .nvmrc."
+    else
+      echo "Switched to Node $(nvm current)"
+    fi
   fi
 }
 
 autoload -U add-zsh-hook
 add-zsh-hook chpwd cd_to_nvm
 cd_to_nvm
-
-
-# This alias runs the Cursor Setup Wizard, simplifying installation and configuration.
-# For more details, visit: https://github.com/jorcelinojunior/cursor-setup-wizard
-alias cursor-setup="/home/kashif/cursor-setup-wizard/cursor_setup.sh"
-
-
-
-# This alias runs the Cursor Setup Wizard, simplifying installation and configuration.
-# For more details, visit: https://github.com/jorcelinojunior/cursor-setup-wizard
-alias cursor-setup="/home/kashif/Github/cursor-setup-wizard/cursor_setup.sh"
-
 
 # Created by `pipx` on 2025-03-22 16:05:15
 export PATH="$PATH:/home/kashif/.local/bin"

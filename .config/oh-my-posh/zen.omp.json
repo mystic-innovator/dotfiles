@@ -6,18 +6,12 @@
       "alignment": "left",
       "segments": [
         {
-          "properties": {
-            "cache_duration": "none"
-          },
-          "template": " {{ if ne .Env.POSH_SESSION_DEFAULT_USER .UserName }}<#77f5d6>{{ .UserName }}</><#7a7a7a>\uf1fa</>{{ end }}<#2EEFBF>{{ .HostName }} ",
+          "template": " {{ if ne .Env.POSH_SESSION_DEFAULT_USER .UserName }}<#2EEFBF>{{ .UserName }}</><#2EEFBF>\uf1fa</>{{ end }}<#2EEFBF>{{ .HostName }}</> ",
           "foreground": "#fafafa",
           "type": "session",
           "style": "plain"
         },
         {
-          "properties": {
-            "cache_duration": "none"
-          },
           "template": " \uf0e7 ",
           "foreground": "#ffff66",
           "type": "root",
@@ -43,7 +37,7 @@
             "fetch_status": true,
             "fetch_upstream_icon": true
           },
-          "template": " {{ .UpstreamIcon }}{{ .HEAD }}{{if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Working.Changed }} \uf044 {{ .Working.String }}{{ end }}{{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}{{ if .Staging.Changed }} \uf046 {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }} \ueb4b {{ .StashCount }}{{ end }} ",
+          "template": " {{ .UpstreamIcon }}{{ .HEAD }}{{ if gt .Ahead 0 }} \u2191{{ .Ahead }}{{ end }}{{ if gt .Behind 0 }} \u2193{{ .Behind }}{{ end }}{{ if .Working.Changed }} \uf044 {{ .Working.String }}{{ end }}{{ if .Staging.Changed }} \uf046 {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }} \ueb4b {{ .StashCount }}{{ end }} ",
           "foreground": "#ffeb3b",
           "type": "git",
           "style": "plain",
@@ -54,9 +48,6 @@
           ]
         },
         {
-          "properties": {
-            "cache_duration": "none"
-          },
           "foreground": "#fafafa",
           "type": "text",
           "style": "plain"
@@ -78,10 +69,7 @@
           "style": "plain"
         },
         {
-          "properties": {
-            "cache_duration": "none"
-          },
-          "template": " \ue235 {{ if .Error }}{{ .Error }}{{ else }}{{ if .Venv }}{{ .Venv }} {{ end }}{{ .Full }}{{ end }} ",
+        "template": " \ue235 {{ if .Venv }}{{ .Venv }}{{ else }}{{ .Full }}{{ end }} ",
           "foreground": "#96E072",
           "type": "python",
           "style": "plain"
@@ -90,7 +78,7 @@
           "properties": {
             "cache_duration": "none",
             "style": "austin",
-            "threshold": 500
+            "threshold": 250
           },
           "template": " \u231b {{ .FormattedMs }} ",
           "foreground": "#FFCE5C",
@@ -104,9 +92,6 @@
       "alignment": "left",
       "segments": [
         {
-          "properties": {
-            "cache_duration": "none"
-          },
           "template": "~#@❯",
           "foreground": "#7a7a7a",
           "type": "text",
@@ -114,21 +99,6 @@
         }
       ],
       "newline": true
-    },
-    {
-      "type": "prompt",
-      "alignment": "left",
-      "segments": [
-        {
-          "properties": {
-            "cache_duration": "none"
-          },
-          "template": "~",
-          "foreground": "#db6e89",
-          "type": "text",
-          "style": "plain"
-        }
-      ]
     }
   ],
   "version": 3,
