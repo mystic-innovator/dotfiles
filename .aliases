@@ -34,9 +34,6 @@ alias ips="ifconfig -a | grep -o 'inet6\?\( addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[
 # Show active network interfaces
 alias ifactive="ifconfig | pcregrep -M -o '^[^:]+:([^\n]|\n\t)*status: active'"
 
-# Flush Directory Service cache
-alias flush="dscacheutil -flushcache && killall -HUP mDNSResponder"
-
 # Recursively delete `.DS_Store` files
 alias cleanup="find . -type f -name '*.DS_Store' -ls -delete"
 
@@ -44,7 +41,7 @@ alias cleanup="find . -type f -name '*.DS_Store' -ls -delete"
 alias emptytrash="sudo rm -rfv ~/.Trash"
 
 # Reload the shell (i.e. invoke as a login shell)
-alias reload="exec ${SHELL} -l"
+alias reload="source ~/.zshrc"
 
 # Print each PATH entry on a separate line
 alias path='echo -e ${PATH//:/\\n}'

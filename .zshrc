@@ -202,3 +202,7 @@ eval "$(zoxide init zsh --cmd cd)"
 # Initialize fzf
 [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh
 [ -f /usr/share/doc/fzf/examples/completion.zsh ] && source /usr/share/doc/fzf/examples/completion.zsh
+
+tmux-git-autofetch() {(/home/kashif/.config/tmux/plugins/tmux-git-autofetch/git-autofetch.tmux --current &)}
+add-zsh-hook chpwd tmux-git-autofetch
+    
