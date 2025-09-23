@@ -52,6 +52,9 @@ else
   echo "Warning: Homebrew not found at /home/linuxbrew/.linuxbrew/bin/brew" >&2
 fi
 
+# Ensure user-local binaries are available early for prompt/tooling detection.
+export PATH="$HOME/.local/bin:$PATH"
+
 # -----------------
 # Zim configuration
 # -----------------
@@ -196,9 +199,6 @@ autoload -U add-zsh-hook
 add-zsh-hook chpwd cd_to_nvm
 cd_to_nvm
 
-# Created by `pipx` on 2025-03-22 16:05:15
-export PATH="$PATH:/home/kashif/.local/bin"
-
 # Initialize Zoxide if available
 if command -v zoxide >/dev/null 2>&1; then
   eval "$(zoxide init zsh --cmd cd)"
@@ -230,4 +230,3 @@ unset __conda_setup
 # Added by LM Studio CLI (lms)
 export PATH="$PATH:/home/kashif/.lmstudio/bin"
 # End of LM Studio CLI section
-
