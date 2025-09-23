@@ -41,7 +41,7 @@ alias cleanup="find . -type f -name '*.DS_Store' -ls -delete"
 alias emptytrash="sudo rm -rfv ~/.Trash"
 
 # Reload the shell (i.e. invoke as a login shell)
-alias reload="source ~/.zshrc"
+alias reload="exec ${SHELL} -l"
 
 # Print each PATH entry on a separate line
 alias path='echo -e ${PATH//:/\\n}'

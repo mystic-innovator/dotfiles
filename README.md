@@ -1,46 +1,37 @@
-
 # Dotfiles Repository
 
 This repository contains my personal configuration files (dotfiles) for Zsh, Tmux, Git, Vim, Oh My Posh, and other tools I use on a daily basis. These configurations are optimized for productivity and ease of use across different environments.
-
-## Table of Contents
-1. [Installation](#installation)
-2. [File Structure](#file-structure)
-3. [Included Configurations](#included-configurations)
-   - [Zsh](#zsh)
-   - [Git](#git)
-   - [Tmux](#tmux)
-   - [Oh My Posh](#oh-my-posh)
-   - [Vim](#vim)
-   - [Fonts](#fonts)
-4. [Usage with `stow`](#usage-with-stow)
-5. [Optional: `~/.extra` for Sensitive Data](#optional-extra-for-sensitive-data)
-6. [License](#license)
 
 ---
 
 ## Installation
 
-### Prerequisites
-Ensure you have `stow` installed. It is a powerful symlink manager that will help you easily apply the configuration files in this repository to your system.
+### Quick Start (New Machine)
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/dotfiles.git ~/dotfiles
+   cd ~/dotfiles
+   ```
+2. Run the bootstrap script:
+   ```bash
+   ./initial-setup.sh
+   ```
+   The script installs required tooling (via `apt` or `brew`), copies Nerd Fonts, creates the necessary symlinks, triggers Zim/Vim/tmux plugin installs, and prints a short post-install checklist.
+3. Open a fresh `zsh` session, launch `tmux`, and run `nvm install --lts` if you plan to use Node.js.
 
-#### Install `stow` (if not already installed):
+### Required Packages
+The script handles installation automatically when `apt` (Debian/Ubuntu) or `brew` (macOS/Linuxbrew) is available. If you prefer manual setup, ensure the following tools are present before running the linking steps:
+- **Shell & prompt**: `zsh`, `zoxide`, `curl`, `wget` (the script will download `oh-my-posh` automatically when available)
+- **Terminal tooling**: `tmux`, `xclip` or `wl-clipboard` (Linux), `fzf`, `ripgrep`, `the_silver_searcher`
+- **Editor support**: `vim` or `neovim`, `universal-ctags`
+- **Language runtimes**: `python3`, `pipx`, `nvm` (install separately), `go` (for `goimports`), Android SDK + `openjdk-17` if you rely on the exported paths in `.zshrc`
+- **Font assets**: Nerd Fonts (the script copies the bundled Meslo variants to `~/.local/share/fonts`)
 
-```bash
-sudo apt-get install stow   # For Ubuntu/Debian
-brew install stow           # For macOS
-```
+If you are on another distribution, install the equivalents with your package manager, then re-run `./initial-setup.sh` to link files and set up plugins without re-installing packages.
 
-### Clone the repository
+---
 
-Clone this repository to your home directory or a location of your choice:
-
-```bash
-git clone https://github.com/yourusername/dotfiles.git ~/dotfiles
-cd ~/dotfiles
-```
-
-## File Structure
+## Project Structure
 
 ```plaintext
 dotfiles/
@@ -57,77 +48,102 @@ dotfiles/
 ├── .zim/                    # Zim configuration for Zsh
 │   └── zimrc                # Zim configuration file
 ├── .fonts/                  # Custom fonts
+├── initial-setup.sh         # Bootstrap script for new machines
+├── AGENTS.md                # Contributor guidelines
 ```
+
+---
 
 ## Included Configurations
 
 ### Zsh
-- **`.zshrc`**: Contains configurations for the Zsh shell, including custom prompt settings, aliases, and environment variables.
-- **`.aliases`**: This file defines useful command shortcuts (e.g., `ll` for `ls -l`, `gs` for `git status`).
-- **`.exports`**: Environment variables, such as custom `$PATH` settings, are defined here.
-- **`.zimrc`**: Zim is a Zsh configuration framework, and this file manages its setup.
+- **`.zshrc`**: Shell configuration, prompt setup, environment exports, and plugin bootstrap via Zim.
+- **`.aliases`**: Useful command shortcuts (e.g., `ll` for `ls -l`, `gs` for `git status`).
+- **`.exports`**: Environment variables and PATH adjustments, including Android and Java tooling.
+- **`.zim/`**: Keeps Zim modules and initialization scripts synced.
 
 ### Git
-- **`.gitconfig`**: Includes custom Git aliases, user information, and advanced settings for diff, merge, and signing commits.
+- **`.gitconfig`**: Custom aliases, diffs, color settings, and preferred defaults.
 
 ### Tmux
-- **`.config/tmux/tmux.conf`**: Configuration for the Tmux terminal multiplexer, including custom key bindings, status bar settings, and behavior tweaks.
+- **`.config/tmux/tmux.conf`**: Tmux configuration, including TPM plugin setup, Catppuccin theme integration, and clipboard helpers.
+- **`.config/tmux/custom_modules/`**: Catppuccin status-line modules for CPU and memory display.
 
 ### Oh My Posh
-- **`.config/oh-my-posh/zen.omp.json`**: Configuration for the Oh My Posh prompt theme, which customizes how the terminal prompt looks.
+- **`.config/oh-my-posh/zen.omp.json`**: Theme definition for the terminal prompt with Git, Node, and Python segments.
 
 ### Vim
-- **`.vimrc`**: Vim editor configuration, which includes settings for syntax highlighting, line numbers, and performance tweaks.
+- **`.vimrc`**: Editor configuration covering indentation, search, mappings, and linting/autocomplete preferences.
+- **`.vimrc.bundles`**: Plugin list managed by vim-plug (fzf, vim-test, ALE, language-specific helpers).
+- **`.vim/ftplugin/`**: Filetype-specific overrides for Go, Markdown, CSS/Sass, and Git commit messages.
 
-### Fonts
-- **`.fonts/`**: Contains custom fonts that can be used in terminal emulators or code editors.
+### Fonts & Themes
+- **`.fonts/`**: Meslo Nerd Font family for terminal glyph support.
+- **`.themes/`**: Additional GTK/desktop themes (e.g., Nordic darker variant).
+
+---
+
+## Symlink & Update Workflow
+
+- `./initial-setup.sh` links files automatically; re-run it after pulling significant updates if you want to ensure plugins and fonts stay current.
+- To refresh only the symlinks without reinstalling packages, run:
+  ```bash
+  ./initial-setup.sh --skip-install
+  ```
+- If you prefer GNU Stow, you can still run `stow --target="$HOME" .config .vim .zim .themes` and manually link the top-level dotfiles; the script is the recommended single-command approach.
+
+---
+
+## Docker Test Harness
+
+To try the setup on an ephemeral Ubuntu host, use the provided Docker workflow:
+
+```bash
+./test/run.sh
+```
+
+The script builds `dotfiles-integration-test` using `test/Dockerfile`, runs `./initial-setup.sh` inside the image, and fails the build if critical symlinks or fonts are missing. After the build succeeds you can launch an interactive shell with:
+
+```bash
+docker run -it --rm dotfiles-integration-test
+```
+
+This is handy for verifying changes to `initial-setup.sh` or trying the dotfiles without touching your local machine. Docker must be available locally for the build to work.
+
+---
 
 ## Usage with `stow`
 
-You can easily manage and apply these dotfiles using `stow`. The `stow` command creates symbolic links to the appropriate locations in your home directory. This makes it easy to keep your dotfiles organized and under version control.
-
-### Applying Configurations
-
-To apply all configurations, run:
+You can still manage individual modules by hand:
 
 ```bash
-stow .
+stow --target="$HOME" .config
+stow --target="$HOME" .vim
+stow --target="$HOME" .zim
 ```
 
-Or, to apply a specific configuration (e.g., just Zsh or Tmux), run:
+For standalone files (like `.zshrc` or `.gitconfig`), create the symlink manually:
 
 ```bash
-stow zsh
-stow tmux
+ln -s "$(pwd)/.zshrc" ~/.zshrc
 ```
 
-This will create symlinks in your home directory for each of the specified files.
-
-### Restoring Configurations
-
-To remove a configuration applied by `stow`, you can simply run the following command:
-
-```bash
-stow -D zsh
-```
-
-This will remove the symlink and leave your original files untouched.
+---
 
 ## Optional: `~/.extra` for Sensitive Data
 
-To store sensitive information like Git credentials or to override specific settings without committing them to version control, you can create a `~/.extra` file. This file is not included in the repository to avoid accidentally committing sensitive data.
+To store sensitive information like Git credentials or machine-specific overrides without committing them to version control, create a `~/.extra` file. This file is sourced by `.zshrc` if present.
 
-### Example `~/.extra` File
+Example `~/.extra` file:
 
 ```bash
 # Git credentials
-# Not in the repository, to prevent people from accidentally committing under my name
 GIT_AUTHOR_NAME="Your Name"
 GIT_COMMITTER_NAME="$GIT_AUTHOR_NAME"
-git config --global user.name "$GIT_AUTHOR_NAME"
 GIT_AUTHOR_EMAIL="your.email@example.com"
 GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
+git config --global user.name "$GIT_AUTHOR_NAME"
 git config --global user.email "$GIT_AUTHOR_EMAIL"
 ```
 
-You could also use `~/.extra` to override settings, functions, and aliases from this repository, but it's better to fork this repository for larger modifications.
+You can also use `~/.extra` to override environment variables, set host-specific aliases, or export API tokens without tracking them in Git.

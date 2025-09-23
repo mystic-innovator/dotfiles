@@ -43,3 +43,4 @@ Thumbs.db          # Windows thumbnail cache
 # Ignore unnecessary metadata and temp files
 *.DS_Store
 *.Trash-*
+.themes/

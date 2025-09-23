@@ -6,10 +6,20 @@
       "alignment": "left",
       "segments": [
         {
-          "template": " {{ if ne .Env.POSH_SESSION_DEFAULT_USER .UserName }}<#2EEFBF>{{ .UserName }}</><#2EEFBF>\uf1fa</>{{ end }}<#2EEFBF>{{ .HostName }}</> ",
           "foreground": "#fafafa",
-          "type": "session",
+          "type": "os",
           "style": "plain"
+        },
+        {
+          "type": "session",
+          "style": "plain",
+          "foreground": "#2EEFBF",
+          "powerline_symbol": "\ue0b0",
+          "template": " {{ if .SSHSession }}\uf817 {{ end }}{{ if ne .Env.POSH_SESSION_DEFAULT_USER .UserName }}{{ .UserName }}@{{ end }}{{ .HostName }} ",
+          "properties": {
+            "display_host": true,
+            "display_user": true
+          }
         },
         {
           "template": " \uf0e7 ",
@@ -28,29 +38,33 @@
           "template": " {{ .Path }} ",
           "foreground": "#fafafa",
           "type": "path",
-          "style": "plain"
+          "style": "powerline"
         },
         {
-          "properties": {
-            "cache_duration": "none",
-            "fetch_stash_count": true,
-            "fetch_status": true,
-            "fetch_upstream_icon": true
-          },
-          "template": " {{ .UpstreamIcon }}{{ .HEAD }}{{ if gt .Ahead 0 }} \u2191{{ .Ahead }}{{ end }}{{ if gt .Behind 0 }} \u2193{{ .Behind }}{{ end }}{{ if .Working.Changed }} \uf044 {{ .Working.String }}{{ end }}{{ if .Staging.Changed }} \uf046 {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }} \ueb4b {{ .StashCount }}{{ end }} ",
-          "foreground": "#ffeb3b",
           "type": "git",
           "style": "plain",
+          "foreground": "#D3D3D3",
+          "template": "{{ if .UpstreamIcon }}{{ .UpstreamIcon }} {{ end }}{{ .HEAD }}{{ if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Working.Changed }} \uf0e7 {{ .Working.String }}{{ end }}{{ if .Staging.Changed }} \uf00c {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }} \uf0c7 {{ .StashCount }}{{ end }}{{ if gt .WorktreeCount 0 }} \uf1bb {{ .WorktreeCount }}{{ end }} ",
           "foreground_templates": [
-            "{{ if or (.Working.Changed) (.Staging.Changed) }}#ffeb3b{{ end }}",
-            "{{ if gt .Ahead 0 }}#2EC4B6{{ end }}",
-            "{{ if gt .Behind 0 }}#8A4FFF{{ end }}"
-          ]
-        },
-        {
-          "foreground": "#fafafa",
-          "type": "text",
-          "style": "plain"
+            "{{ if gt .StashCount 0 }}#FF69B4{{ else if gt .WorktreeCount 0 }}#FFD700{{ else if or (.Working.Changed) (.Staging.Changed) }}{{ if .Staging.Changed }}#00FF00{{ else }}#FFEB3B{{ end }}{{ else if gt .Ahead 0 }}#B388FF{{ else if gt .Behind 0 }}#FF5555{{ else }}#00FFFF{{ end }}"
+          ],
+          "properties": {
+            "fetch_status": true,
+            "fetch_upstream_icon": true,
+            "fetch_stash_count": true,
+            "fetch_worktree_count": true,
+            "branch_max_length": 25,
+            "cache_duration": "5m",
+            "mapped_branches": {
+              "feat/*": "\uf135 ",
+              "fix/*": "\uf0ad ",
+              "hotfix/*": "\uf06d "
+            },
+            "status_formats": {
+              "working": "{{ if .Changed }}{{ .Added }}+{{ .Modified }}~{{ .Deleted }}-{{ .Untracked }}?{{ end }}",
+              "staging": "{{ if .Changed }}{{ .Added }}+{{ .Modified }}~{{ .Deleted }}-{{ end }}"
+            }
+          }
         }
       ]
     },
@@ -58,6 +72,15 @@
       "type": "prompt",
       "alignment": "right",
       "segments": [
+        {
+          "type": "upgrade",
+          "style": "plain",
+          "foreground": "#111111",
+          "background": "#FFD664",
+          "properties": {
+            "cache_duration": "168h"
+          }
+        },
         {
           "properties": {
             "cache_duration": "none",

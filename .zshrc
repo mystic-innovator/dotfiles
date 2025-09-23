@@ -205,4 +205,24 @@ eval "$(zoxide init zsh --cmd cd)"
 
 tmux-git-autofetch() {(/home/kashif/.config/tmux/plugins/tmux-git-autofetch/git-autofetch.tmux --current &)}
 add-zsh-hook chpwd tmux-git-autofetch
-    
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/home/kashif/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/home/kashif/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "/home/kashif/miniconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/home/kashif/miniconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/home/kashif/.lmstudio/bin"
+# End of LM Studio CLI section
+
