@@ -52,8 +52,6 @@ else
   echo "Warning: Homebrew not found at /home/linuxbrew/.linuxbrew/bin/brew" >&2
 fi
 
-# Initialize Oh-My-Posh
-[[ -f ~/.config/oh-my-posh/zen.omp.json ]] && eval "$(oh-my-posh init zsh --config ~/.config/oh-my-posh/zen.omp.json)"
 # -----------------
 # Zim configuration
 # -----------------
@@ -140,6 +138,11 @@ fi
 # Always source init.zsh without redundant checks if it exists
 [[ -e ${ZIM_HOME}/init.zsh ]] && source ${ZIM_HOME}/init.zsh
 
+# Initialize Oh-My-Posh prompt if the binary is available.
+if command -v oh-my-posh >/dev/null 2>&1 && [[ -f ~/.config/oh-my-posh/zen.omp.json ]]; then
+  eval "$(oh-my-posh init zsh --config ~/.config/oh-my-posh/zen.omp.json)"
+fi
+
 # ------------------------------
 # Post-init module configuration
 # ------------------------------
@@ -196,8 +199,10 @@ cd_to_nvm
 # Created by `pipx` on 2025-03-22 16:05:15
 export PATH="$PATH:/home/kashif/.local/bin"
 
-# Initialize Zoxide
-eval "$(zoxide init zsh --cmd cd)"
+# Initialize Zoxide if available
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh --cmd cd)"
+fi
 
 # Initialize fzf
 [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh
