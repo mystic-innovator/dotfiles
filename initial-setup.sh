@@ -116,6 +116,7 @@ link_dotfiles() {
     .vimrc
     .vimrc.bundles
     .wgetrc
+    .zshenv
     .zimrc
     .zshrc
   )
