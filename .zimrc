@@ -1,0 +1,11 @@
+# Zim modules loaded by zimfw. Adjust order to match preferred prompt/features.
+zmodule environment
+zmodule git
+zmodule input
+zmodule termtitle
+zmodule utility
+zmodule completion
+zmodule zsh-completions
+zmodule zsh-autosuggestions
+zmodule zsh-history-substring-search
+zmodule zsh-syntax-highlighting

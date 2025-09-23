@@ -116,6 +116,7 @@ link_dotfiles() {
     .vimrc
     .vimrc.bundles
     .wgetrc
+    .zimrc
     .zshrc
   )
   for file in "${files[@]}"; do
