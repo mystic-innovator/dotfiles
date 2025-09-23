@@ -5,7 +5,7 @@ zmodule input
 zmodule termtitle
 zmodule utility
 zmodule completion
-zmodule zsh-completions
-zmodule zsh-autosuggestions
-zmodule zsh-history-substring-search
-zmodule zsh-syntax-highlighting
+zmodule zsh-users/zsh-completions
+zmodule zsh-users/zsh-autosuggestions
+zmodule zsh-users/zsh-history-substring-search
+zmodule zsh-users/zsh-syntax-highlighting
