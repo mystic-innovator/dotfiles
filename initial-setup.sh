@@ -211,7 +211,9 @@ bootstrap_shell_tools() {
     if ! zsh -lc 'command -v zimfw >/dev/null 2>&1'; then
       warn "zimfw not yet available; sourcing .zshrc to trigger download"
     fi
-    zsh -lc 'source ~/.zshrc >/dev/null 2>&1; if command -v zimfw >/dev/null 2>&1; then zimfw install; zimfw upgrade; fi' || warn "zimfw install/upgrade returned an error"
+    if ! zsh -lc 'export GIT_TERMINAL_PROMPT=0; source ~/.zshrc >/dev/null 2>&1; if command -v zimfw >/dev/null 2>&1; then zimfw install && zimfw upgrade; fi'; then
+      warn "zimfw install/upgrade returned an error (check network access or credentials)"
+    fi
   else
     warn "zsh not found; skipping Zim bootstrap"
   fi
