@@ -26,6 +26,8 @@ RUN ./initial-setup.sh
 RUN test -L /home/dotbot/.zshrc \
  && test -L /home/dotbot/.gitconfig \
  && test -d /home/dotbot/.config/tmux \
- && test -f /home/dotbot/.local/share/fonts/MesloLGLNerdFont-Regular.ttf
+ && test -f /home/dotbot/.local/share/fonts/MesloLGLNerdFont-Regular.ttf \
+ && test -d /home/dotbot/.zim/modules/zsh-autosuggestions \
+ && test -f /home/dotbot/.zim/init.zsh
 
 CMD ["/bin/bash"]

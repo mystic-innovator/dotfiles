@@ -12,6 +12,8 @@
 .dbus/
 .vscode/extensions.json
 .vscode/extensions/
+.zim/modules/
+.zim/**/modules/
 
 # Ignore temporary and lock files
 *.swp

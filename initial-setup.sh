@@ -211,8 +211,24 @@ bootstrap_shell_tools() {
     if ! zsh -lc 'command -v zimfw >/dev/null 2>&1'; then
       warn "zimfw not yet available; sourcing .zshrc to trigger download"
     fi
-    if ! zsh -lc 'export GIT_TERMINAL_PROMPT=0; source ~/.zshrc >/dev/null 2>&1; if command -v zimfw >/dev/null 2>&1; then zimfw install && zimfw upgrade; fi'; then
+    if ! zsh -lc 'export GIT_TERMINAL_PROMPT=0 ZIMFW_INSTALLER=degit; source ~/.zshrc >/dev/null 2>&1; if command -v zimfw >/dev/null 2>&1; then zimfw install && zimfw upgrade; fi'; then
       warn "zimfw install/upgrade returned an error (check network access or credentials)"
+    fi
+
+    local zim_modules=(
+      zsh-completions
+      zsh-autosuggestions
+      zsh-history-substring-search
+      zsh-syntax-highlighting
+    )
+    local missing_modules=()
+    for module in "${zim_modules[@]}"; do
+      if [ ! -d "${HOME}/.zim/modules/${module}" ]; then
+        missing_modules+=("${module}")
+      fi
+    done
+    if [ ${#missing_modules[@]} -ne 0 ]; then
+      warn "Missing Zim modules: ${missing_modules[*]} (run 'zimfw install' once network access is available)"
     fi
   else
     warn "zsh not found; skipping Zim bootstrap"

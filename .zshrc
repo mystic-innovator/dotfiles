@@ -58,8 +58,8 @@ fi
 # Zim configuration
 # -----------------
 
-# Use degit instead of git as the default tool to install and update modules.
-#zstyle ':zim:zmodule' use 'degit'
+# Use degit to fetch modules via tarballs, avoiding git clone prompts on public repos.
+zstyle ':zim:zmodule' use 'degit'
 
 # --------------------
 # Module configuration
