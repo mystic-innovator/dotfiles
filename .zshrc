@@ -33,6 +33,10 @@ WORDCHARS=${WORDCHARS//[\/]}
 # Attach to or create a tmux session
 alias tmux="tmux -f ~/.config/tmux/tmux.conf"
 
+if command -v lazydocker >/dev/null 2>&1; then
+  alias ld='lazydocker'
+fi
+
 # Load the shell dotfiles, and then some:
 # * ~/.path can be used to extend `$PATH`.
 # * ~/.extra can be used for other settings you don’t want to commit.
