@@ -51,7 +51,7 @@ install_dependencies() {
   case "$PACKAGE_MANAGER" in
     apt)
       local packages=(
-        build-essential curl fzf git lazydocker neovim net-tools
+        build-essential curl fzf git neovim net-tools
         pipx python3 python3-pip ripgrep silversearcher-ag stow tmux
         universal-ctags wget wl-clipboard xclip zoxide zsh
       )
@@ -188,6 +188,32 @@ ensure_oh_my_posh() {
   fi
 }
 
+ensure_lazydocker() {
+  # On mac with Homebrew this will already be installed
+  if command -v lazydocker >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if ! command -v curl >/dev/null 2>&1; then
+    warn "curl unavailable; cannot install lazydocker automatically"
+    return 0
+  fi
+
+  info "Installing lazydocker via upstream install script"
+  local installer
+  installer="$(mktemp)"
+  if curl -fsSL \
+    https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh \
+    -o "$installer"; then
+    if ! bash "$installer"; then
+      warn "lazydocker install script reported an error"
+    fi
+  else
+    warn "Unable to download lazydocker installer"
+  fi
+  rm -f "$installer"
+}
+
 install_fonts() {
   local fonts_dir="${HOME}/.local/share/fonts"
   if [ -d "${REPO_DIR}/.fonts" ]; then
@@ -273,6 +299,7 @@ main() {
     info "Skipping package installation (--skip-install)"
   fi
   ensure_oh_my_posh
+  ensure_lazydocker
   install_fonts
   link_dotfiles
   link_directories
