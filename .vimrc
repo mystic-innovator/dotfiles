@@ -173,4 +173,4 @@ set diffopt+=vertical
 " Local config
 if filereadable($HOME . "/.vimrc.local")
   source ~/.vimrc.local
-endifw
+endif

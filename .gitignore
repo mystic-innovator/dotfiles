@@ -15,6 +15,9 @@
 .zim/modules/
 .zim/**/modules/
 
+# Vim plugin directory (managed by vim-plug)
+.vim/
+
 # Ignore temporary and lock files
 *.swp
 *.swo

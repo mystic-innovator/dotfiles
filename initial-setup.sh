@@ -24,8 +24,11 @@ parse_args() {
 Usage: ./initial-setup.sh [options]
 
 Options:
-  --skip-install   Skip package installation and only link dotfiles/plugins.
+  --skip-install   Skip package installation and only use stow to link dotfiles.
   -h, --help       Show this help message.
+
+This script installs dependencies, sets up oh-my-posh and lazydocker, installs
+fonts, and uses GNU stow to symlink dotfiles from this repository to $HOME.
 USAGE
         exit 0
         ;;
@@ -99,58 +102,24 @@ backup_existing() {
   fi
 }
 
-link_item() {
-  local source_path="$1"
-  local target_path="$2"
-  backup_existing "$target_path" "$source_path"
-  ln -sfn "$source_path" "$target_path"
-  info "Linked ${target_path} -> ${source_path}"
-}
+stow_dotfiles() {
+  if ! command -v stow >/dev/null 2>&1; then
+    warn "stow not found; cannot symlink dotfiles automatically"
+    return 1
+  fi
 
-link_dotfiles() {
-  local files=(
-    .aliases
-    .curlrc
-    .exports
-    .gitconfig
-    .vimrc
-    .vimrc.bundles
-    .wgetrc
-    .zshenv
-    .zimrc
-    .zshrc
-  )
-  for file in "${files[@]}"; do
-    local source_path="${REPO_DIR}/${file}"
-    local target_path="${HOME}/${file}"
-    if [ -e "$source_path" ] || [ -L "$source_path" ]; then
-      link_item "$source_path" "$target_path"
-    fi
-  done
-}
-
-link_directories() {
-  local dirs=(
-    .vim
-    .zim
-    .themes
-  )
-  for dir in "${dirs[@]}"; do
-    local source_path="${REPO_DIR}/${dir}"
-    local target_path="${HOME}/${dir}"
-    if [ -d "$source_path" ]; then
-      link_item "$source_path" "$target_path"
-    fi
-  done
-
-  mkdir -p "${HOME}/.config"
-  for subdir in tmux oh-my-posh; do
-    local source_path="${REPO_DIR}/.config/${subdir}"
-    local target_path="${HOME}/.config/${subdir}"
-    if [ -d "$source_path" ]; then
-      link_item "$source_path" "$target_path"
-    fi
-  done
+  info "Using stow to symlink dotfiles"
+  cd "$REPO_DIR" || return 1
+  
+  # Run stow with --no-folding to avoid symlinking entire directories
+  # This allows individual file management and easier updates
+  if stow --no-folding --verbose=1 . 2>&1 | grep -E '(LINK|UNLINK|NOTE)'; then
+    info "Dotfiles symlinked successfully via stow"
+  else
+    warn "stow encountered an issue (this may be normal if files are already linked)"
+  fi
+  
+  cd - >/dev/null || true
 }
 
 ensure_oh_my_posh() {
@@ -232,6 +201,27 @@ install_fonts() {
   fi
 }
 
+ensure_vim_plug() {
+  local vim_plug_path="${HOME}/.vim/autoload/plug.vim"
+  if [ -f "$vim_plug_path" ]; then
+    return 0
+  fi
+
+  if ! command -v curl >/dev/null 2>&1; then
+    warn "curl unavailable; cannot install vim-plug automatically"
+    return 0
+  fi
+
+  info "Installing vim-plug"
+  mkdir -p "${HOME}/.vim/autoload"
+  if curl -fsSLo "$vim_plug_path" --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim; then
+    info "vim-plug installed successfully"
+  else
+    warn "Failed to download vim-plug"
+  fi
+}
+
 bootstrap_shell_tools() {
   if command -v zsh >/dev/null 2>&1; then
     info "Bootstrapping Zim modules via zsh"
@@ -269,6 +259,8 @@ bootstrap_shell_tools() {
     warn "TPM not yet cloned; open tmux and press <prefix> + I after first launch"
   fi
 
+  ensure_vim_plug
+
   if command -v vim >/dev/null 2>&1; then
     info "Installing Vim plugins"
     vim +PlugInstall +qall || warn "vim plugin installation exited with a non-zero status"
@@ -287,6 +279,8 @@ Next steps:
   - Open a new zsh session (or run `exec zsh`) to pick up prompt and PATH tweaks.
   - Launch tmux once so TPM can finish cloning plugins.
   - Verify Node.js via `nvm install --lts` and install Android tooling if required.
+  - Run `stow .` in this directory to refresh symlinks after making changes.
+  - Use `stow --simulate .` to preview what would be linked without making changes.
 MSG
 }
 
@@ -301,8 +295,7 @@ main() {
   ensure_oh_my_posh
   ensure_lazydocker
   install_fonts
-  link_dotfiles
-  link_directories
+  stow_dotfiles
   bootstrap_shell_tools
   post_install_notes
   info "Initial setup completed"
