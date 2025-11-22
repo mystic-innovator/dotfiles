@@ -234,3 +234,11 @@ unset __conda_setup
 # Added by LM Studio CLI (lms)
 export PATH="$PATH:/home/kashif/.lmstudio/bin"
 # End of LM Studio CLI section
+
+# pnpm
+export PNPM_HOME="/home/kashif/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end

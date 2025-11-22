@@ -54,7 +54,7 @@ install_dependencies() {
   case "$PACKAGE_MANAGER" in
     apt)
       local packages=(
-        build-essential curl fzf git neovim net-tools
+        build-essential curl fontconfig fzf git neovim net-tools
         pipx python3 python3-pip ripgrep silversearcher-ag stow tmux
         universal-ctags wget wl-clipboard xclip zoxide zsh
       )
