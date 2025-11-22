@@ -1,0 +1,37 @@
+# Stow local ignore file
+# Files and directories listed here will not be stowed
+
+# Git and development files
+\.git
+\.gitignore
+\.gitmodules
+\.stow-local-ignore
+
+# Documentation and metadata
+README\.md
+AGENTS\.md
+LICENSE
+LICENSE\.txt
+\.editorconfig
+
+# Test and development directories
+^/test
+^/docs
+^/scripts
+
+# Setup scripts (already executable from repo)
+initial-setup\.sh
+
+# CI/CD files
+\.github
+\.gitlab-ci\.yml
+\.travis\.yml
+
+# Editor and IDE files
+\.vscode
+\.idea
+
+# Build artifacts
+node_modules
+dist
+build

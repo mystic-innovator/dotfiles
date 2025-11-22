@@ -56,7 +56,7 @@ install_dependencies() {
       local packages=(
         build-essential curl fontconfig fzf git neovim net-tools
         pipx python3 python3-pip ripgrep silversearcher-ag stow tmux
-        universal-ctags wget wl-clipboard xclip zoxide zsh
+        universal-ctags unzip wget wl-clipboard xclip zoxide zsh
       )
       info "Using apt-get to install base packages"
       local apt_cmd=(env DEBIAN_FRONTEND=noninteractive apt-get)
