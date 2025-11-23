@@ -204,9 +204,9 @@ autoload -U add-zsh-hook
 add-zsh-hook chpwd cd_to_nvm
 cd_to_nvm
 
-# Initialize Zoxide if available
+# Initialize Zoxide with 'z' command (doesn't override cd, prevents recursion)
 if command -v zoxide >/dev/null 2>&1; then
-  eval "$(zoxide init zsh --cmd cd)"
+  eval "$(zoxide init zsh)"
 fi
 
 # Initialize fzf

@@ -35,3 +35,7 @@ initial-setup\.sh
 node_modules
 dist
 build
+
+# Zim generated files (created by zimfw, not stowed)
+\.zim/init\.zsh
+\.zim/login_init\.zsh
