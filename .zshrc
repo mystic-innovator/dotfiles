@@ -49,11 +49,9 @@ for file in ~/.{path,exports,aliases,functions,extra}; do
 done
 unset file
 
-# Initialize Homebrew
+# Initialize Homebrew (silently skip if not installed)
 if [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-else
-  echo "Warning: Homebrew not found at /home/linuxbrew/.linuxbrew/bin/brew" >&2
 fi
 
 # Ensure user-local binaries are available early for prompt/tooling detection.
@@ -188,12 +186,15 @@ nvm() {
   nvm "$@"
 }
 cd_to_nvm() {
+  # Check for .nvmrc in current directory
   if [[ -f .nvmrc ]]; then
+    # Lazy-load NVM if not already loaded
     if ! command -v nvm >/dev/null 2>&1; then
-      echo "NVM not loaded. Run 'nvm' to initialize."
-    elif ! nvm use 2>/dev/null; then
-      echo "Failed to switch to Node version in .nvmrc."
-    else
+      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+      [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+    fi
+    # Try to use the specified version
+    if command -v nvm >/dev/null 2>&1 && nvm use 2>/dev/null; then
       echo "Switched to Node $(nvm current)"
     fi
   fi
@@ -203,9 +204,9 @@ autoload -U add-zsh-hook
 add-zsh-hook chpwd cd_to_nvm
 cd_to_nvm
 
-# Initialize Zoxide if available
+# Initialize Zoxide if available (use 'z' command to avoid conflicts)
 if command -v zoxide >/dev/null 2>&1; then
-  eval "$(zoxide init zsh --cmd cd)"
+  eval "$(zoxide init zsh)"
 fi
 
 # Initialize fzf
