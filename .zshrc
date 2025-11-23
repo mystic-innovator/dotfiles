@@ -204,17 +204,20 @@ autoload -U add-zsh-hook
 add-zsh-hook chpwd cd_to_nvm
 cd_to_nvm
 
-# Initialize Zoxide if available (use 'z' command to avoid conflicts)
+# Initialize Zoxide if available
 if command -v zoxide >/dev/null 2>&1; then
-  eval "$(zoxide init zsh)"
+  eval "$(zoxide init zsh --cmd cd)"
 fi
 
 # Initialize fzf
 [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh
 [ -f /usr/share/doc/fzf/examples/completion.zsh ] && source /usr/share/doc/fzf/examples/completion.zsh
 
-tmux-git-autofetch() {(/home/kashif/.config/tmux/plugins/tmux-git-autofetch/git-autofetch.tmux --current &)}
-add-zsh-hook chpwd tmux-git-autofetch
+# Only add tmux-git-autofetch if the plugin exists
+if [[ -x "${HOME}/.config/tmux/plugins/tmux-git-autofetch/git-autofetch.tmux" ]]; then
+  tmux-git-autofetch() {("${HOME}/.config/tmux/plugins/tmux-git-autofetch/git-autofetch.tmux" --current &)}
+  add-zsh-hook chpwd tmux-git-autofetch
+fi
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!

@@ -222,6 +222,47 @@ ensure_vim_plug() {
   fi
 }
 
+change_default_shell() {
+  if ! command -v zsh >/dev/null 2>&1; then
+    warn "zsh not found; cannot change default shell"
+    return 0
+  fi
+
+  local zsh_path
+  zsh_path="$(command -v zsh)"
+  
+  # Check if already using zsh
+  if [ "$SHELL" = "$zsh_path" ]; then
+    info "Default shell is already zsh"
+    return 0
+  fi
+
+  # Ensure zsh is in /etc/shells
+  if ! grep -q "^${zsh_path}$" /etc/shells 2>/dev/null; then
+    info "Adding ${zsh_path} to /etc/shells"
+    if [ "$(id -u)" -eq 0 ]; then
+      echo "$zsh_path" >> /etc/shells
+    elif command -v sudo >/dev/null 2>&1; then
+      echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
+    else
+      warn "Cannot add zsh to /etc/shells without sudo; run manually: echo '${zsh_path}' | sudo tee -a /etc/shells"
+      return 0
+    fi
+  fi
+
+  # Change default shell
+  info "Changing default shell to zsh"
+  if command -v chsh >/dev/null 2>&1; then
+    if chsh -s "$zsh_path" 2>/dev/null; then
+      info "Default shell changed to zsh (logout and login to take effect)"
+    else
+      warn "chsh failed; you may need to run: chsh -s ${zsh_path}"
+    fi
+  else
+    warn "chsh not found; change shell manually with: chsh -s ${zsh_path}"
+  fi
+}
+
 bootstrap_shell_tools() {
   if command -v zsh >/dev/null 2>&1; then
     info "Bootstrapping Zim modules via zsh"
@@ -296,6 +337,7 @@ main() {
   ensure_lazydocker
   install_fonts
   stow_dotfiles
+  change_default_shell
   bootstrap_shell_tools
   post_install_notes
   info "Initial setup completed"
