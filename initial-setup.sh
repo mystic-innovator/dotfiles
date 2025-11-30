@@ -54,7 +54,7 @@ install_dependencies() {
   case "$PACKAGE_MANAGER" in
     apt)
       local packages=(
-        btop build-essential curl fastfetch fontconfig fzf git neovim net-tools
+        btop build-essential curl fontconfig fzf git neovim net-tools
         pipx python3 python3-pip ripgrep silversearcher-ag stow tmux
         universal-ctags unzip wget wl-clipboard xclip zoxide zsh
       )
@@ -181,6 +181,49 @@ ensure_lazydocker() {
     warn "Unable to download lazydocker installer"
   fi
   rm -f "$installer"
+}
+
+ensure_fastfetch() {
+  # On mac with Homebrew this will already be installed
+  if command -v fastfetch >/dev/null 2>&1; then
+    return 0
+  fi
+
+  case "$PACKAGE_MANAGER" in
+    apt)
+      # Try installing via PPA for Ubuntu/Debian
+      info "Installing fastfetch via PPA"
+      local apt_cmd=(env DEBIAN_FRONTEND=noninteractive apt-get)
+      if [ "$(id -u)" -ne 0 ]; then
+        if command -v sudo >/dev/null 2>&1; then
+          apt_cmd=(sudo -E env DEBIAN_FRONTEND=noninteractive apt-get)
+        else
+          warn "sudo not available; skipping fastfetch installation"
+          return 0
+        fi
+      fi
+      
+      # Add PPA and install
+      if command -v add-apt-repository >/dev/null 2>&1; then
+        if [ "$(id -u)" -ne 0 ]; then
+          sudo add-apt-repository -y ppa:zhangsongcui3371/fastfetch || warn "Failed to add fastfetch PPA"
+        else
+          add-apt-repository -y ppa:zhangsongcui3371/fastfetch || warn "Failed to add fastfetch PPA"
+        fi
+        "${apt_cmd[@]}" update
+        "${apt_cmd[@]}" install -y fastfetch || warn "Failed to install fastfetch from PPA"
+      else
+        warn "add-apt-repository not available; cannot add fastfetch PPA. Install software-properties-common first."
+      fi
+      ;;
+    brew)
+      # Already handled in install_dependencies
+      brew install fastfetch || warn "Failed to install fastfetch via brew"
+      ;;
+    *)
+      warn "No package manager detected; skipping fastfetch installation"
+      ;;
+  esac
 }
 
 install_fonts() {
@@ -335,6 +378,7 @@ main() {
   fi
   ensure_oh_my_posh
   ensure_lazydocker
+  ensure_fastfetch
   install_fonts
   stow_dotfiles
   change_default_shell
