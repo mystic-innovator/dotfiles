@@ -54,7 +54,7 @@ install_dependencies() {
   case "$PACKAGE_MANAGER" in
     apt)
       local packages=(
-        build-essential curl fontconfig fzf git neovim net-tools
+        btop build-essential curl fastfetch fontconfig fzf git neovim net-tools
         pipx python3 python3-pip ripgrep silversearcher-ag stow tmux
         universal-ctags unzip wget wl-clipboard xclip zoxide zsh
       )
@@ -73,7 +73,7 @@ install_dependencies() {
       ;;
     brew)
       local packages=(
-        curl fzf git lazydocker neovim oh-my-posh pipx ripgrep stow
+        btop curl fastfetch fzf git lazydocker neovim oh-my-posh pipx ripgrep stow
         the_silver_searcher tmux wget zoxide zsh
       )
       info "Using Homebrew to install base packages"
