@@ -343,18 +343,26 @@ bootstrap_shell_tools() {
     warn "TPM not yet cloned; open tmux and press <prefix> + I after first launch"
   fi
 
-  ensure_vim_plug
-
-  if command -v vim >/dev/null 2>&1; then
-    info "Installing Vim plugins"
-    vim +PlugInstall +qall || warn "vim plugin installation exited with a non-zero status"
-  elif command -v nvim >/dev/null 2>&1; then
-    info "Installing Vim plugins via Neovim"
-    nvim +PlugInstall +qall || warn "PlugInstall via Neovim exited with a non-zero status"
+  # Bootstrap Neovim with LazyVim (replaces old vim-plug setup)
+  if command -v nvim >/dev/null 2>&1; then
+    info "Bootstrapping Neovim with LazyVim"
+    
+    # Ensure undo directory exists
+    mkdir -p "${HOME}/.config/nvim/undo"
+    
+    # LazyVim will auto-install on first launch
+    # Just create the symlink if it doesn't exist
+    if [ ! -L "${HOME}/.config/nvim" ] && [ ! -d "${HOME}/.config/nvim" ]; then
+      info "Creating Neovim config symlink"
+      ln -sf "$(pwd)/.config/nvim" "${HOME}/.config/nvim"
+    fi
+    
+    info "Neovim setup complete. Plugins will auto-install on first 'nvim' launch"
   else
-    warn "Neither vim nor nvim found; skip plugin installation"
+    warn "Neovim not found; skipping nvim configuration"
   fi
 }
+
 
 post_install_notes() {
   cat <<'MSG'
@@ -362,6 +370,10 @@ post_install_notes() {
 Next steps:
   - Open a new zsh session (or run `exec zsh`) to pick up prompt and PATH tweaks.
   - Launch tmux once so TPM can finish cloning plugins.
+  - Launch Neovim (`nvim`) - LazyVim plugins will auto-install on first run.
+  - Run `:checkhealth` in Neovim to verify everything is working.
+  - Authenticate GitHub Copilot with `:Copilot auth` (optional, requires GitHub account).
+  - Complete the Neovim tutorial with `:Tutor` to learn the basics.
   - Verify Node.js via `nvm install --lts` and install Android tooling if required.
   - Run `stow .` in this directory to refresh symlinks after making changes.
   - Use `stow --simulate .` to preview what would be linked without making changes.
