@@ -145,8 +145,11 @@ fi
 
 # Initialize Oh-My-Posh prompt if the binary is available.
 if command -v oh-my-posh >/dev/null 2>&1 && [[ -f ~/.config/oh-my-posh/zen.omp.json ]]; then
-  # Try to initialize oh-my-posh, suppress errors if command format is incompatible
-  eval "$(oh-my-posh init zsh --config ~/.config/oh-my-posh/zen.omp.json 2>/dev/null)" 2>/dev/null || true
+  # Test if oh-my-posh init works before evaluating it
+  local omp_init_output
+  if omp_init_output=$(oh-my-posh init zsh --config ~/.config/oh-my-posh/zen.omp.json 2>&1); then
+    eval "$omp_init_output" 2>/dev/null || true
+  fi
 fi
 
 # ------------------------------
