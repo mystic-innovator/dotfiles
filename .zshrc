@@ -49,13 +49,29 @@ for file in ~/.{path,exports,aliases,functions,extra}; do
 done
 unset file
 
-# Initialize Homebrew (silently skip if not installed)
-if [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
-  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+# Initialize Homebrew (macOS first, then Linux)
+if [[ "$OSTYPE" == darwin* ]]; then
+  if [[ -x /opt/homebrew/bin/brew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  elif [[ -x /usr/local/bin/brew ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+  fi
+elif [[ "$OSTYPE" == linux* ]]; then
+  if [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+  elif [[ -x /usr/local/linuxbrew/bin/brew ]]; then
+    eval "$(/usr/local/linuxbrew/bin/brew shellenv)"
+  fi
 fi
 
 # Ensure user-local binaries are available early for prompt/tooling detection.
 export PATH="$HOME/.local/bin:$PATH"
+
+# Initialize Oh-My-Posh (if installed)
+if command -v oh-my-posh >/dev/null 2>&1; then
+  [[ -f ~/.config/oh-my-posh/zen.omp.json ]] && \
+    eval "$(oh-my-posh init zsh --config ~/.config/oh-my-posh/zen.omp.json)"
+fi
 
 # -----------------
 # Zim configuration
@@ -209,20 +225,19 @@ autoload -U add-zsh-hook
 add-zsh-hook chpwd cd_to_nvm
 cd_to_nvm
 
-# Initialize Zoxide with 'z' command (doesn't override cd, prevents recursion)
-if command -v zoxide >/dev/null 2>&1; then
-  eval "$(zoxide init zsh)"
-fi
+# Initialize Zoxide
+command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh --cmd cd)"
 
 # Initialize fzf
 [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh
 [ -f /usr/share/doc/fzf/examples/completion.zsh ] && source /usr/share/doc/fzf/examples/completion.zsh
 
-# Only add tmux-git-autofetch if the plugin exists
-if [[ -x "${HOME}/.config/tmux/plugins/tmux-git-autofetch/git-autofetch.tmux" ]]; then
-  tmux-git-autofetch() {("${HOME}/.config/tmux/plugins/tmux-git-autofetch/git-autofetch.tmux" --current &)}
-  add-zsh-hook chpwd tmux-git-autofetch
-fi
+# Setup tmux-git-autofetch hook
+tmux-git-autofetch() {("$HOME/.config/tmux/plugins/tmux-git-autofetch/git-autofetch.tmux" --current &)}
+add-zsh-hook chpwd tmux-git-autofetch
+
+# Added by Antigravity
+export PATH="/Users/kashifeqbal/.antigravity/antigravity/bin:$PATH"
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
@@ -238,7 +253,6 @@ else
 fi
 unset __conda_setup
 # <<< conda initialize <<<
-
 
 # Added by LM Studio CLI (lms)
 export PATH="$PATH:/home/kashif/.lmstudio/bin"
