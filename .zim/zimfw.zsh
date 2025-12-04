@@ -30,7 +30,7 @@ autoload -Uz is-at-least && if ! is-at-least 5.2; then
 fi
 
 # Define zimfw location
-typeset -g __ZIMFW_FILE=${0}
+typeset -g __ZIMFW_FILE=${0:a}
 
 _zimfw_print() {
   if (( _zprintlevel > 0 )) print "${@}"
@@ -75,7 +75,7 @@ _zimfw_build_init() {
       fi
     done
     zpre=$'*\0'
-    if (( ${#_zfpaths} )) print -R 'fpath=('${${(qqq)${_zfpaths#${~zpre}}:a}/${HOME}/\${HOME}}' ${fpath})'
+    if (( ${#_zfpaths} )) print -R 'fpath=('${_zfpaths#${~zpre}}' ${fpath})'
     if (( ${#zfunctions} )) print -R 'autoload -Uz -- '${zfunctions#${~zpre}}
     for zroot_dir in ${_zroot_dirs}; do
       zpre=${zroot_dir}$'\0'
@@ -348,7 +348,7 @@ Per-call initialization options:
       fi
     fi
   fi
-  if (( _zeager )); then
+  if (( ! ${_zdisabled_paths[(I)${zroot_dir}]} && _zeager )); then
     if [[ ! -e ${zroot_dir} ]]; then
       print -u2 -R "${_zerror}${funcfiletrace[1]}:${_zbold}${zname}: ${zroot_dir}${_znormalred} not found${_znormal}"
       _zfailed=1
@@ -374,6 +374,7 @@ Per-call initialization options:
     fi
     # Prefix is added to all _zfpaths, _zfunctions and _zcmds to distinguish the originating root dir
     local -r zpre=${zroot_dir}$'\0'
+    zfpaths=(${${(@qqq)zfpaths:a}/${HOME}/\${HOME}})
     _zfpaths+=(${zpre}${^zfpaths})
     _zfunctions+=(${zpre}${^zfunctions})
     zcmds=(${zcmds//${HOME}/\${HOME}})
@@ -551,7 +552,7 @@ _zimfw_info() {
   _zimfw_info_print_symlink ZIM_HOME ${ZIM_HOME}
   _zimfw_info_print_symlink 'zimfw config' ${_zconfig}
   _zimfw_info_print_symlink 'zimfw script' ${__ZIMFW_FILE}
-  print -R 'zimfw version:        '${_zversion}' (built at 2025-11-05 23:29:33 UTC, previous commit is ad16a43)'
+  print -R 'zimfw version:        '${_zversion}' (built at 2025-11-19 23:36:54 UTC, previous commit is ec0ff5c)'
   local zparam
   for zparam in LANG ${(Mk)parameters:#LC_*} OSTYPE TERM TERM_PROGRAM TERM_PROGRAM_VERSION ZSH_VERSION; do
     print -R ${(r.22....:.)zparam}${(P)zparam}
@@ -614,11 +615,12 @@ _zimfw_upgrade() {
 _zimfw_run_list() {
   local -r zname=${1}
   local -r zpath=${_zpaths[${zname}]}
+  local -r zroot_dirs=(${(M)_zroot_dirs:#${zpath}(|/*)})
   print -nR "${_zbold}${zname}:${_znormal} ${zpath}"
   if [[ ! -e ${zpath} ]] print -n ' (not installed)'
   if [[ -z ${_zurls[${zname}]} ]] print -n ' (external)'
   if (( ${_zfrozens[${zname}]} )) print -n ' (frozen)'
-  if (( ${_zdisabled_paths[(I)${zpath}]} )) print -n ' (disabled)'
+  if [[ ${_zdisabled_paths[(I)${zpath}]} -ne 0 && ${zroot_dirs} == (${zpath}) ]] print -n ' (disabled)'
   print
   if (( _zprintlevel > 1 )); then
     if [[ ${_zfrozens[${zname}]} -eq 0 && -n ${_zurls[${zname}]} ]]; then
@@ -637,23 +639,26 @@ _zimfw_run_list() {
       fi
       if [[ -n ${_zonpulls[${zname}]} ]] print -R "  On-pull: ${_zonpulls[${zname}]}"
     fi
-    # Match the current module dir prefix from _zroot_dirs
-    local -r zroot_dirs=(${(M)_zroot_dirs:#${zpath}/*})
-    if (( ${#zroot_dirs} )); then
-      print '  Additional root:'
-      local zroot_dir
-      for zroot_dir in ${zroot_dirs}; do
-        print -nR "    ${zroot_dir}"
+    local zroot_dir zindent zpre
+    local -a zfpaths zfunctions zcmds
+    for zroot_dir in ${zroot_dirs}; do
+      if [[ ${zroot_dirs} == (${zpath}) ]]; then
+        zindent='  '
+      else
+        print -nR '  Root: '${zroot_dir}
         if (( ${_zdisabled_paths[(I)${zroot_dir}]} )) print -n ' (disabled)'
         print
-      done
-    fi
-    # Match and remove the prefix from _zfpaths, _zfunctions and _zcmds
-    local -r zpre="${(q)zpath}(|/*)"$'\0'
-    local -r zfpaths=(${${(M)_zfpaths:#${~zpre}*}#${~zpre}}) zfunctions=(${${(M)_zfunctions:#${~zpre}*}#${~zpre}}) zcmds=(${${(M)_zcmds:#${~zpre}*}#${~zpre}})
-    if (( ${#zfpaths} )) print -R '  fpath: '${zfpaths}
-    if (( ${#zfunctions} )) print -R '  autoload: '${zfunctions}
-    if (( ${#zcmds} )) print -R '  cmd: '${(j:; :)zcmds}
+        zindent='    '
+      fi
+      if (( ${+_zifs[${zroot_dir}]} )) print -R ${zindent}'if: '${_zifs[${zroot_dir}]}
+      zpre=${zroot_dir}$'\0'
+      zfpaths=(${${(M)_zfpaths:#${zpre}*}#${zpre}})
+      zfunctions=(${${(M)_zfunctions:#${zpre}*}#${zpre}})
+      zcmds=(${${(M)_zcmds:#${zpre}*}#${zpre}})
+      if (( ${#zfpaths} )) print -R ${zindent}'fpath: '${zfpaths}
+      if (( ${#zfunctions} )) print -R ${zindent}'autoload: '${zfunctions}
+      if (( ${#zcmds} )) print -R ${zindent}'cmd: '${(j:; :)zcmds}
+    done
   fi
 }
 
@@ -969,7 +974,11 @@ _zimfw_tool_mkdir() {
   # This runs in a subshell
   readonly -i SUBMODULES=${6}
   readonly ACTION=${1} DIR=${2} TYPE=${4} REV=${5} ONPULL=${7}
-  if [[ ${ACTION} == (pre|prereinstall|check) ]] return 0
+  if [[ ${ACTION} == (pre|prereinstall) ]] return 0
+  if [[ ${ACTION} == check ]]; then
+    _zimfw_print_okay 'Skipping mkdir module' 1
+    return 0
+  fi
   if [[ -n ${REV} ]]; then
     _zimfw_print_warn "The zmodule option ${_zbold}-${TYPE[1]}${_znormalyellow}|${_zbold}--${TYPE}${_znormalyellow} has no effect when using the mkdir tool"
   fi
@@ -977,7 +986,12 @@ _zimfw_tool_mkdir() {
     _zimfw_print_warn "The zmodule option ${_zbold}--no-submodules${_znormalyellow} has no effect when using the mkdir tool"
   fi
   if [[ ! -d ${DIR} || -n ${ONPULL} ]]; then
-    _zimfw_create_dir ${DIR} && _zimfw_pull_print_okay Created || return 1
+    local -r zroot_dirs=(${(M)_zroot_dirs:#${DIR}(|/*)})
+    local zroot_dir
+    for zroot_dir in ${zroot_dirs}; do
+      _zimfw_create_dir ${zroot_dir} || return 1
+    done
+    _zimfw_pull_print_okay Created || return 1
   fi
 }
 
@@ -1059,7 +1073,7 @@ zimfw() {
     local -r _znormal= _zbold= _zred= _znormalred= _zgreen= _zyellow= _znormalyellow=
   fi
   local -r _zerror="${_zred}x " _zokay="${_zgreen}) ${_znormal}" _zwarn="${_zyellow}! "
-  local -r _zconfig=${ZIM_CONFIG_FILE:-${ZDOTDIR:-${HOME}}/.zimrc} _zversion='1.19.0'
+  local -r _zconfig=${ZIM_CONFIG_FILE:-${ZDOTDIR:-${HOME}}/.zimrc} _zversion='1.19.1'
   local -r zusage="Usage: ${_zbold}${0}${_znormal} <action> [option]
 
 Actions:
@@ -1080,7 +1094,8 @@ Actions:
   ${_zbold}reinstall${_znormal}           Reinstall modules that failed check. Prompts for confirmation, unless ${_zbold}-q${_znormal}
                       is used. Also does ${_zbold}build${_znormal}, ${_zbold}compile${_znormal}. Use ${_zbold}-v${_znormal} to also see their output, any
                       on-pull output and skipped modules.
-  ${_zbold}uninstall${_znormal}           Delete unused modules. Prompts for confirmation, unless ${_zbold}-q${_znormal} is used.
+  ${_zbold}uninstall${_znormal}           Delete unused modules. Prompts for confirmation, unless ${_zbold}-q${_znormal} is used. Also
+                      does ${_zbold}build${_znormal}. Use ${_zbold}-v${_znormal} to also see its output.
   ${_zbold}check${_znormal}               Check if updates for current modules are available. Use ${_zbold}-v${_znormal} to also see
                       skipped and up to date modules.
   ${_zbold}check-version${_znormal}       Check if a new version of zimfw is available.
@@ -1177,7 +1192,11 @@ Options:
       (( _zprintlevel-- ))
       _zimfw_source_zimrc 1 && _zimfw_build && _zimfw_compile
       ;;
-    uninstall) _zimfw_source_zimrc 0 && _zimfw_list_unused_paths && _zimfw_uninstall ;;
+    uninstall)
+      _zimfw_source_zimrc 0 && _zimfw_list_unused_paths && _zimfw_uninstall || return 1
+      (( _zprintlevel-- ))
+      _zimfw_source_zimrc 1 && _zimfw_build
+      ;;
     check-version)
       _zimfw_check_version 1
       (( _zprintlevel-- ))

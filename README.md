@@ -1,6 +1,6 @@
 # Dotfiles Repository
 
-This repository contains my personal configuration files (dotfiles) for Zsh, Tmux, Git, Vim, Oh My Posh, and other tools I use on a daily basis. These configurations are optimized for productivity and ease of use across different environments.
+This repository contains my personal configuration files (dotfiles) for Zsh, Tmux, Git, Oh My Posh, and other tools I use on a daily basis. Optional Vim/Neovim configs are kept for reference but are not applied by default.
 
 ---
 
@@ -16,14 +16,14 @@ This repository contains my personal configuration files (dotfiles) for Zsh, Tmu
    ```bash
    ./initial-setup.sh
    ```
-   The script installs required tooling (via `apt` or `brew`), copies Nerd Fonts, creates the necessary symlinks, triggers Zim/Vim/tmux plugin installs, and prints a short post-install checklist.
+   The script installs required tooling (via `apt` or `brew`), copies Nerd Fonts, creates the necessary symlinks, triggers Zim/tmux plugin installs, and prints a short post-install checklist. Pass `--with-neovim` if you want Neovim and the bundled LazyVim config linked.
 3. Open a fresh `zsh` session, launch `tmux`, and run `nvm install --lts` if you plan to use Node.js.
 
 ### Required Packages
 The script handles installation automatically when `apt` (Debian/Ubuntu) or `brew` (macOS/Linuxbrew) is available. If you prefer manual setup, ensure the following tools are present before running the linking steps:
 - **Shell & prompt**: `zsh`, `zoxide`, `curl`, `wget` (the script will download `oh-my-posh` automatically when available)
 - **Terminal tooling**: `tmux`, `xclip` or `wl-clipboard` (Linux), `fzf`, `ripgrep`, `the_silver_searcher`
-- **Editor support**: `vim` or `neovim`, `universal-ctags`
+- **Editor support (optional)**: `neovim` and `universal-ctags` if you opt in with `--with-neovim`; legacy Vim config is kept but ignored by default.
 - **Language runtimes**: `python3`, `pipx`, `nvm` (install separately), `go` (for `goimports`), Android SDK + `openjdk-17` if you rely on the exported paths in `.zshrc`
 - **Font assets**: Nerd Fonts (the script copies the bundled Meslo variants to `~/.local/share/fonts`)
 
@@ -72,10 +72,12 @@ dotfiles/
 ### Oh My Posh
 - **`.config/oh-my-posh/zen.omp.json`**: Theme definition for the terminal prompt with Git, Node, and Python segments.
 
-### Vim
-- **`.vimrc`**: Editor configuration covering indentation, search, mappings, and linting/autocomplete preferences.
-- **`.vimrc.bundles`**: Plugin list managed by vim-plug (fzf, vim-test, ALE, language-specific helpers).
-- **`.vim/ftplugin/`**: Filetype-specific overrides for Go, Markdown, CSS/Sass, and Git commit messages.
+### Neovim (LazyVim, optional)
+- **`.config/nvim/`**: LazyVim-based configuration kept for reference. Not linked by default; run `./initial-setup.sh --with-neovim` and remove the `.stow-local-ignore` entry for `.config/nvim` if you want it applied.
+
+### Legacy Vim (optional)
+- **`.vimrc`** and **`.vimrc.bundles`**: Classic Vim setup retained for compatibility. Ignored by default via `.stow-local-ignore`; include manually if you still use Vim.
+
 
 ### Fonts & Themes
 - **`.fonts/`**: Meslo Nerd Font family for terminal glyph support.
@@ -90,7 +92,8 @@ dotfiles/
   ```bash
   ./initial-setup.sh --skip-install
   ```
-- If you prefer GNU Stow, you can still run `stow --target="$HOME" .config .vim .zim .themes` and manually link the top-level dotfiles; the script is the recommended single-command approach.
+- Vim/Neovim configs are ignored by default via `.stow-local-ignore`. Remove those entries and pass `--with-neovim` if you want them linked.
+- If you prefer GNU Stow, you can still run `stow --target="$HOME" .config .zim .themes` and manually link the top-level dotfiles; add `.config/nvim` or `.vim` only after removing them from `.stow-local-ignore`.
 
 ---
 
@@ -118,7 +121,6 @@ You can still manage individual modules by hand:
 
 ```bash
 stow --target="$HOME" .config
-stow --target="$HOME" .vim
 stow --target="$HOME" .zim
 ```
 
@@ -127,6 +129,8 @@ For standalone files (like `.zshrc` or `.gitconfig`), create the symlink manuall
 ```bash
 ln -s "$(pwd)/.zshrc" ~/.zshrc
 ```
+
+Add `.config/nvim` or `.vim` to the stow list only after removing them from `.stow-local-ignore` and opting in to editor setup.
 
 ---
 

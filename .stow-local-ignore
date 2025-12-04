@@ -31,6 +31,12 @@ initial-setup\.sh
 \.vscode
 \.idea
 
+# Editor configs opted-out by default
+\.vim
+\.vimrc
+\.vimrc\.bundles
+^/\.config/nvim
+
 # Build artifacts
 node_modules
 dist

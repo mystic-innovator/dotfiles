@@ -9,6 +9,7 @@ error() { printf "\033[31m[ERR]\033[0m %s\n" "$*" >&2; }
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PACKAGE_MANAGER=""
 SKIP_INSTALL=0
+INSTALL_NEOVIM=0
 : "${TZ:=Etc/UTC}"
 export TZ
 
@@ -19,13 +20,18 @@ parse_args() {
         SKIP_INSTALL=1
         shift
         ;;
+      --with-neovim|--with-nvim)
+        INSTALL_NEOVIM=1
+        shift
+        ;;
       --help|-h)
         cat <<'USAGE'
 Usage: ./initial-setup.sh [options]
 
 Options:
-  --skip-install   Skip package installation and only use stow to link dotfiles.
-  -h, --help       Show this help message.
+  --skip-install    Skip package installation and only use stow to link dotfiles.
+  --with-neovim     Opt-in to installing Neovim and linking LazyVim configs.
+  -h, --help        Show this help message.
 
 This script installs dependencies, sets up oh-my-posh and lazydocker, installs
 fonts, and uses GNU stow to symlink dotfiles from this repository to $HOME.
@@ -54,7 +60,7 @@ install_dependencies() {
   case "$PACKAGE_MANAGER" in
     apt)
       local packages=(
-        btop build-essential curl fontconfig fzf git neovim net-tools
+        btop build-essential curl fontconfig fzf git net-tools
         pipx python3 python3-pip ripgrep silversearcher-ag stow tmux
         universal-ctags unzip wget wl-clipboard xclip zoxide zsh
       )
@@ -264,7 +270,6 @@ ensure_vim_plug() {
     warn "Failed to download vim-plug"
   fi
 }
-
 change_default_shell() {
   if ! command -v zsh >/dev/null 2>&1; then
     warn "zsh not found; cannot change default shell"
@@ -343,8 +348,10 @@ bootstrap_shell_tools() {
     warn "TPM not yet cloned; open tmux and press <prefix> + I after first launch"
   fi
 
-  # Bootstrap Neovim with LazyVim (replaces old vim-plug setup)
-  if command -v nvim >/dev/null 2>&1; then
+  # Bootstrap Neovim with LazyVim only when requested
+  if [ "${INSTALL_NEOVIM:-0}" -eq 0 ]; then
+    info "Skipping Neovim bootstrap (--with-neovim not set)"
+  elif command -v nvim >/dev/null 2>&1; then
     info "Bootstrapping Neovim with LazyVim"
     
     # Ensure undo directory exists
@@ -370,14 +377,60 @@ post_install_notes() {
 Next steps:
   - Open a new zsh session (or run `exec zsh`) to pick up prompt and PATH tweaks.
   - Launch tmux once so TPM can finish cloning plugins.
-  - Launch Neovim (`nvim`) - LazyVim plugins will auto-install on first run.
-  - Run `:checkhealth` in Neovim to verify everything is working.
-  - Authenticate GitHub Copilot with `:Copilot auth` (optional, requires GitHub account).
-  - Complete the Neovim tutorial with `:Tutor` to learn the basics.
+  - If you enable Neovim (`./initial-setup.sh --with-neovim`), launch `nvim` once to pull plugins and run `:checkhealth`.
   - Verify Node.js via `nvm install --lts` and install Android tooling if required.
   - Run `stow .` in this directory to refresh symlinks after making changes.
   - Use `stow --simulate .` to preview what would be linked without making changes.
 MSG
+}
+
+ensure_neovim() {
+  if command -v nvim >/dev/null 2>&1; then
+    local nvim_version=$(nvim --version | head -n1 | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | cut -c2-)
+    # LazyVim requires >= 0.10.0 (actually 0.11+ for latest, but let's check for at least 0.10)
+    # Simple version check: if starts with 0.9 or 0.8, it's too old
+    if [[ "$nvim_version" == 0.9.* ]] || [[ "$nvim_version" == 0.8.* ]]; then
+      warn "Neovim version $nvim_version is too old for LazyVim. Upgrading..."
+    else
+      info "Neovim version $nvim_version detected."
+      return 0
+    fi
+  fi
+
+  info "Installing latest Neovim..."
+  # Download AppImage
+  curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+  chmod u+x nvim.appimage
+  
+  # Move to local bin
+  mkdir -p "$HOME/.local/bin"
+  mv nvim.appimage "$HOME/.local/bin/nvim"
+  
+  # Ensure it's in path for this session
+  export PATH="$HOME/.local/bin:$PATH"
+  
+  if command -v nvim >/dev/null 2>&1; then
+    info "Neovim installed successfully: $(nvim --version | head -n1)"
+  else
+    warn "Failed to install Neovim"
+  fi
+
+  # Fix common LazyVim health issues
+  
+  # 1. Fix 'fd' not found (Ubuntu installs it as 'fdfind')
+  if ! command -v fd >/dev/null 2>&1 && command -v fdfind >/dev/null 2>&1; then
+    info "Symlinking fdfind to fd for Telescope compatibility"
+    mkdir -p "$HOME/.local/bin"
+    ln -sf "$(command -v fdfind)" "$HOME/.local/bin/fd"
+  fi
+
+  # 2. Install pynvim for Python provider support
+  if command -v pip3 >/dev/null 2>&1; then
+    if ! pip3 list 2>/dev/null | grep -q pynvim; then
+      info "Installing pynvim for Neovim Python support"
+      pip3 install --user pynvim || warn "Failed to install pynvim"
+    fi
+  fi
 }
 
 main() {
@@ -387,6 +440,12 @@ main() {
     install_dependencies
   else
     info "Skipping package installation (--skip-install)"
+  fi
+
+  if [ "$INSTALL_NEOVIM" -eq 1 ]; then
+    ensure_neovim
+  else
+    info "Skipping Neovim install (--with-neovim not set)"
   fi
   ensure_oh_my_posh
   ensure_lazydocker
