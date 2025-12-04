@@ -160,8 +160,6 @@
 [init]
 
 	defaultBranch = main
-[user]
-	email = kashif@tap.health
 [filter "lfs"]
 	required = true
 	clean = git-lfs clean -- %f
